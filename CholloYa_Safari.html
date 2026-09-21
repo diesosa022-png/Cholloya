@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ff5a36">
+<title>CholloYa</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f7f7;color:#111}
+header{background:#fff;padding:18px 18px 12px;position:sticky;top:0;z-index:5;border-bottom:1px solid #eee}
+.logo{font-size:29px;font-weight:900;color:#ff5a36}.tag{font-size:12px;color:#777}
+main{padding:18px 16px 90px;max-width:650px;margin:auto}.hero{background:#ffe8e1;padding:18px;border-radius:20px;margin-bottom:14px}.hero h1{margin:0;font-size:23px}.hero p{margin:7px 0 0;color:#666}
+input{width:100%;padding:14px;border:1px solid #eee;border-radius:14px;background:#fff;font-size:16px;margin-bottom:12px}
+.chips{display:flex;gap:8px;overflow:auto;padding-bottom:8px}.chip{border:1px solid #eee;background:#fff;border-radius:20px;padding:9px 14px;white-space:nowrap}.active{background:#ff5a36;color:white;border-color:#ff5a36}
+.card{background:#fff;border-radius:18px;padding:12px;margin:10px 0;display:flex;gap:12px;box-shadow:0 2px 10px #00000008}.pic{width:82px;height:82px;background:#f0f0f0;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:34px;flex:none}
+.info{flex:1}.row{display:flex;justify-content:space-between;align-items:center}.badge{background:#19a463;color:white;border-radius:6px;padding:4px 7px;font-size:11px;font-weight:800}.heart{font-size:25px;color:#ff5a36;background:none;border:0}
+h2{font-size:18px;margin:7px 0 2px}.store{font-size:12px;color:#888}.price{font-size:18px;font-weight:900;margin-top:6px}.old{text-decoration:line-through;color:#999;font-size:12px;margin-left:7px}.btn{border:0;background:#ff5a36;color:white;border-radius:10px;padding:10px 13px;font-weight:800;margin-top:8px;width:100%}.outline{background:#fff;color:#ff5a36;border:1px solid #ff5a36}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eee;height:72px;display:flex;justify-content:space-around;z-index:10}nav button{border:0;background:none;color:#777;font-size:12px}nav .sel{color:#ff5a36;font-weight:800}
+.panel{background:#fff;border-radius:18px;padding:18px;margin-top:12px}.empty{padding:25px;text-align:center;color:#777;background:#fff;border-radius:15px}
+</style>
+</head>
+<body>
+<header><div class="logo">Chollo<span style="color:#111">Ya</span></div><div class="tag">Chollos que merecen la pena</div></header>
+<main id="app"></main>
+<nav>
+<button onclick="page='home';render()" id="nHome">⌂<br>Inicio</button>
+<button onclick="page='saved';render()" id="nSaved">♡<br>Guardados</button>
+<button onclick="page='profile';render()" id="nProfile">○<br>Perfil</button>
+</nav>
+<script>
+const KEY='cholloya_web_v1';
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||{favorites:[],points:0,name:''};
+let page='home',cat='Todos',q='';
+const deals=[
+{id:'1',t:'Auriculares inalámbricos',s:'Tienda Demo',p:19.99,o:39.99,c:'Tecnología',e:'🎧',url:'https://example.com'},
+{id:'2',t:'Zapatillas deportivas',s:'Moda Demo',p:29.90,o:59.90,c:'Moda',e:'👟',url:'https://example.com'},
+{id:'3',t:'Freidora de aire',s:'Hogar Demo',p:44.99,o:79.99,c:'Hogar',e:'🍳',url:'https://example.com'},
+{id:'4',t:'Smartwatch',s:'Tecnología Demo',p:24.99,o:49.99,c:'Tecnología',e:'⌚',url:'https://example.com'}
+];
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function nav(){['nHome','nSaved','nProfile'].forEach(x=>document.getElementById(x).classList.remove('sel'));document.getElementById(page==='home'?'nHome':page==='saved'?'nSaved':'nProfile').classList.add('sel')}
+function card(d){
+ let dis=Math.round((1-d.p/d.o)*100),fav=state.favorites.includes(d.id);
+ return `<div class="card"><div class="pic">${d.e}</div><div class="info"><div class="row"><span class="badge">-${dis}%</span><button class="heart" onclick="fav('${d.id}')">${fav?'♥':'♡'}</button></div><h2>${d.t}</h2><div class="store">${d.s} · ${d.c}</div><div class="price">${d.p.toFixed(2)} € <span class="old">${d.o.toFixed(2)} €</span></div><button class="btn" onclick="openDeal('${d.id}')">Ver oferta</button></div></div>`
+}
+function home(){
+ let list=deals.filter(d=>(cat==='Todos'||d.c===cat)&&(`${d.t} ${d.s}`.toLowerCase().includes(q.toLowerCase())));
+ return `<div class="hero"><h1>Encuentra tu próximo chollo 🔥</h1><p>Busca ofertas y guarda las que te interesen.</p></div>
+<input placeholder="Buscar ofertas..." value="${q.replaceAll('"','&quot;')}" oninput="q=this.value;render()">
+<div class="chips">${['Todos','Tecnología','Moda','Hogar'].map(x=>`<button class="chip ${cat===x?'active':''}" onclick="cat='${x}';render()">${x}</button>`).join('')}</div>
+${list.length?list.map(card).join(''):'<div class="empty">No encontramos chollos.</div>'}`
+}
+function saved(){let list=deals.filter(d=>state.favorites.includes(d.id));return `<h1>❤️ Mis guardados</h1><p style="color:#777">Tus ofertas favoritas.</p>${list.length?list.map(card).join(''):'<div class="empty">Todavía no has guardado ningún chollo.</div>'}`}
+function profile(){return `<h1>👤 Perfil</h1><div class="panel"><h2>${state.name||'Usuario CholloYa'}</h2><p>⭐ <b>${state.points}</b> puntos</p><button class="btn" onclick="invite()">Simular invitación +10 puntos</button></div><div class="panel"><h2>💰 Cómo gana dinero CholloYa</h2><p>La versión real puede monetizar mediante publicidad y enlaces de afiliados. Las ganancias dependen del tráfico, clics y compras.</p></div><div class="panel"><h2>🚀 Siguiente paso</h2><p>Conectar ofertas reales, afiliados, publicidad y un panel privado para administrar la app.</p></div>`}
+function openDeal(id){let d=deals.find(x=>x.id===id);document.getElementById('app').innerHTML=`<button class="chip" onclick="render()">← Volver</button><div class="panel" style="margin-top:15px;text-align:center"><div style="font-size:80px">${d.e}</div><span class="badge">-${Math.round((1-d.p/d.o)*100)}%</span><h1>${d.t}</h1><p style="color:#777">${d.s} · ${d.c}</p><div class="price" style="font-size:30px">${d.p.toFixed(2)} € <span class="old">${d.o.toFixed(2)} €</span></div><button class="btn" onclick="location.href='${d.url}'">Ver oferta</button><button class="btn outline" onclick="fav('${d.id}')">${state.favorites.includes(d.id)?'♥ Guardado':'♡ Guardar chollo'}</button></div><p style="font-size:12px;color:#888">Los enlaces actuales son de demostración.</p>`}
+function fav(id){state.favorites=state.favorites.includes(id)?state.favorites.filter(x=>x!==id):[...state.favorites,id];save();render()}
+function invite(){state.points+=10;save();alert('¡+10 puntos!');render()}
+function render(){document.getElementById('app').innerHTML=page==='home'?home():page==='saved'?saved():profile();nav()}
+render();
+</script>
+</body>
+</html>
